@@ -1,0 +1,12 @@
+[package]
+name = "aoc22"
+# year.month.day
+version = "2022.12.0"
+
+[addresses]
+std =  "0x1"
+aoc22 = "0xc0de"
+
+[dependencies]
+MoveStdlib = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib", rev = "6722242844d206d59f60c11cac13ead43a210ced" }
+MoveNursery = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib/nursery", rev = "6722242844d206d59f60c11cac13ead43a210ced" }
