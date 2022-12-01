@@ -59,7 +59,7 @@ module aoc22::d01 {
         debug::print(&top3_calories(&d01_in::input1()));
     }
 
-   #[test_only]
+    #[test_only]
     const TEST_INPUT: vector<vector<u64>> = vector[
         vector[1000, 2000, 3000],
         vector[4000],
