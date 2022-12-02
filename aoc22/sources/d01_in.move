@@ -1,6 +1,6 @@
 module aoc22::d01_in {
     friend aoc22::d01;
-    const INPUT1: vector<vector<u64>> = vector[
+    const INPUT: vector<vector<u64>> = vector[
 vector[
 13399,13677,11945,9861,6484,4257
 ],vector[
@@ -511,5 +511,5 @@ vector[
 5868,3033,6833,5479,5133,4490,6107,5144,4442,5649,2533,5321,1877,
 ]
 ];
-public(friend) fun input1(): vector<vector<u64>> { INPUT1 }
+public(friend) fun input(): vector<vector<u64>> { INPUT }
 }

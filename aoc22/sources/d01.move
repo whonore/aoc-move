@@ -55,8 +55,8 @@ module aoc22::d01 {
     }
 
     public entry fun run() {
-        debug::print(&max_calories(&d01_in::input1()));
-        debug::print(&top3_calories(&d01_in::input1()));
+        debug::print(&max_calories(&d01_in::input()));
+        debug::print(&top3_calories(&d01_in::input()));
     }
 
     #[test_only]

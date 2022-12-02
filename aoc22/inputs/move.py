@@ -12,9 +12,10 @@ class Module:
     def __str__(self) -> str:
         consts = "\n".join(
             f"""
-const INPUT{i}: {const.type} = {str(const)};
-public(friend) fun input{i}(): {const.type} {{ INPUT{i} }}
-            """.strip() for i, const in enumerate(self.consts, start=1)
+const {const.name}: {const.type} = {str(const)};
+public(friend) fun {const.name.lower()}(): {const.type} {{ {const.name} }}
+            """.strip()
+            for const in self.consts
         )
         return f"""
 module aoc22::{self.name}_in {{
@@ -25,10 +26,11 @@ module aoc22::{self.name}_in {{
 
 
 class Vector:
-    def __init__(self, vals: list[Any], type_: str) -> None:
-        self.type = type_
+    def __init__(self, vals: list[Any], type_: str, *, name: str | None = None) -> None:
+        self.name = name
+        self.type = f"vector<{type_}>"
         self.vals = vals
 
     def __str__(self) -> str:
         vals = ",".join(map(str, self.vals))
-        return f"vector[\n{vals}\n]".strip()
+        return f"vector[\n{vals}\n]"
