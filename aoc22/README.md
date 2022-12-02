@@ -39,3 +39,26 @@ property.
 The `_in()` version did end up helping for part 2.
 Annoying to have to make multiple versions for different bit widths.
 Need some sort of generic number trait or macros maybe.
+
+### Day 2
+
+#### Part 1
+
+Pretty easy, just loop through each round, compute the score, and sum.
+Would've been nicer to reuse `sum64()`, but would still need the explicit loop
+to map `score()` anyway, so it's not really worth it.
+Apparently constants can't appear in other constants so the inputs have to use
+`1`, `2`, etc. instead of `A`, `B`.
+Compilation times seem pretty slow, maybe from the giant constant input vectors.
+May need to find a workaround if this continues.
+One option might be to move the inputs to their own package so they don't get
+recompiled every time.
+
+#### Part 2
+
+Only change is to compute our move from the opponent's move and the intended outcome.
+I hadn't thought about it before, but I guess Rock-Paper-Scissors forms
+something like a group?
+It's not closed, but there's some notion of an inverse: `Rock * Paper = Lose`,
+`Lose * (Paper^-1) = Rock`, `Win * (Scissors^-1) = Rock`, etc.
+Maybe there's a name for that.
