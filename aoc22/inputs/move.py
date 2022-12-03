@@ -34,3 +34,13 @@ class Vector:
     def __str__(self) -> str:
         vals = ",".join(map(str, self.vals))
         return f"vector[\n{vals}\n]"
+
+
+class Bytes:
+    def __init__(self, bytes: str, *, name: str | None = None) -> None:
+        self.name = name
+        self.type = f"vector<u8>"
+        self.bytes = bytes
+
+    def __str__(self) -> str:
+        return f'b"{self.bytes}"'
