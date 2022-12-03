@@ -94,3 +94,14 @@ Just call `vector::push_back()` `n` times.
 Used to initialize the ad-hoc hash map, but ended up not needing it.
 Decided to keep it anyway because I'd already proved the spec and it may be
 useful later.
+
+#### Other
+
+Fixed the slow compilation times by loading the inputs from storage instead of
+constants.
+The scripts in `inputs/` (e.g., `d01.py`) read `$DAY.in`, parse it into a
+Move-appropriate data type, and serialize it as `$DAY.bcs`.
+Serialization works by just creating a temporary Move script that uses
+`bcs::to_bytes()` and `debug::print()`.
+Move seems to be able to deserialize BCS from storage much faster than it can
+load a constant, at least for large vectors.
