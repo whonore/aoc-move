@@ -11,12 +11,9 @@ def parse(data: str) -> str:
     mod = Module(NAME)
     varmap = {"A": 1, "B": 2, "C": 3, "X": 4, "Y": 5, "Z": 6}
     chunks = Vector(
-        [
-            Vector([varmap[x] for x in line.split(" ")], type_="u8")
-            for line in data.strip().split("\n")
-        ],
+        [varmap[x] for x in data.strip().split()],
         name="INPUT",
-        type_="vector<u8>",
+        type_="u8",
     )
     mod.add_const(chunks)
     return str(mod)

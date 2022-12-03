@@ -40,33 +40,31 @@ module aoc22::d02 {
         win(opp_move, my_move) + (my_move - 3)
     }
 
-    fun total_score(v: &vector<vector<u8>>): u64 {
+    fun total_score(v: &vector<u8>): u64 {
         let s = 0;
         let i = 0;
         let len = vector::length(v);
 
         while (i < len) {
-            let moves = vector::borrow(v, i);
-            let opp_move = *vector::borrow(moves, 0);
-            let my_move = *vector::borrow(moves, 1);
+            let opp_move = *vector::borrow(v, i);
+            let my_move = *vector::borrow(v, i + 1);
             s = s + (score(opp_move, my_move) as u64);
-            i = i + 1;
+            i = i + 2;
         };
         s
     }
 
-    fun total_score2(v: &vector<vector<u8>>): u64 {
+    fun total_score2(v: &vector<u8>): u64 {
         let s = 0;
         let i = 0;
         let len = vector::length(v);
 
         while (i < len) {
-            let moves = vector::borrow(v, i);
-            let opp_move = *vector::borrow(moves, 0);
-            let outcome = *vector::borrow(moves, 1);
+            let opp_move = *vector::borrow(v, i);
+            let outcome = *vector::borrow(v, i + 1);
             let my_move = compute_move(opp_move, outcome);
             s = s + (score(opp_move, my_move) as u64);
-            i = i + 1;
+            i = i + 2;
         };
         s
     }
@@ -77,10 +75,10 @@ module aoc22::d02 {
     }
 
     #[test_only]
-    const TEST_INPUT: vector<vector<u8>> = vector[
-        vector[1, 5],
-        vector[2, 4],
-        vector[3, 6],
+    const TEST_INPUT: vector<u8> = vector[
+        1, 5,
+        2, 4,
+        3, 6,
     ];
 
     #[test]
