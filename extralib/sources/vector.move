@@ -154,6 +154,68 @@ module extralib::vector {
         ensures len(v) > 0 ==> (forall x in v: result_2 >= x);
     }
 
+    /// Create a vector of a length `n` by repeating `default`.
+    public fun repeat<T: copy>(n: u64, default: &T): vector<T> {
+        let v = vector[];
+
+        let i = 0;
+        while ({
+            spec {
+                invariant i <= n;
+                invariant len(v) == i;
+                invariant forall x in v: x == default;
+            };
+            i < n
+        }) {
+            vector::push_back(&mut v, *default);
+            i = i + 1;
+        };
+        v
+    }
+
+    spec repeat {
+        aborts_if false;
+        ensures len(result) == n;
+        ensures forall x in result: x == default;
+    }
+
+    /// Split a vector into two at `idx` (`v[idx]` will be the first element of
+    /// the second vector).
+    public fun split_at<T: copy>(v: &vector<T>, idx: u64): (vector<T>, vector<T>) {
+        let v1 = vector[];
+        let v2 = vector[];
+
+        let i = 0;
+        let vlen = vector::length(v);
+        while ({
+            spec {
+                invariant i <= vlen;
+                invariant i < idx ==> v1 == v[0..i];
+                invariant i >= idx ==> v1 == v[0..idx];
+                invariant i < idx ==> len(v2) == 0;
+                invariant i >= idx ==> v2 == v[idx..i];
+                invariant concat(v1, v2) == v[0..i];
+            };
+            i < vlen
+        }) {
+            let x = *vector::borrow(v, i);
+            if (i < idx) {
+                vector::push_back(&mut v1, x);
+            } else {
+                vector::push_back(&mut v2, x);
+            };
+            i = i + 1;
+        };
+        (v1, v2)
+    }
+
+    spec split_at {
+        aborts_if false;
+        ensures concat(result_1, result_2) == v;
+        ensures idx < len(v) ==> result_1 == v[0..idx] && result_2 == v[idx..len(v)];
+        ensures idx >= len(v) ==> result_1 == v && len(result_2) == 0;
+    }
+
     #[test]
     fun test_sum64() {
         assert!(sum64_in(&vector[1,2,3,4,5], 1, 3) == 5, 0);
@@ -198,5 +260,22 @@ module extralib::vector {
         assert!(idx == 3 && v == 5, 0);
         let (idx, v) = max128(&vector[]);
         assert!(idx == 0 && v == 0, 0);
+    }
+
+    #[test]
+    fun test_repeat() {
+        assert!(repeat(3, &1) == vector[1,1,1], 0);
+        assert!(repeat(2, &true) == vector[true,true], 0);
+        assert!(repeat(0, &1) == vector[], 0);
+    }
+
+    #[test]
+    fun test_split_at() {
+        let (v1, v2) = split_at(&vector[1,2,3,4,5], 3);
+        assert!(v1 == vector[1,2,3] && v2 == vector[4,5], 0);
+        let (v1, v2) = split_at(&vector[1,2,3,4,5], 0);
+        assert!(v1 == vector[] && v2 == vector[1,2,3,4,5], 0);
+        let (v1, v2) = split_at(&vector[1,2,3,4,5], 5);
+        assert!(v1 == vector[1,2,3,4,5] && v2 == vector[], 0);
     }
 }

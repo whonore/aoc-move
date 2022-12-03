@@ -62,3 +62,35 @@ something like a group?
 It's not closed, but there's some notion of an inverse: `Rock * Paper = Lose`,
 `Lose * (Paper^-1) = Rock`, `Win * (Scissors^-1) = Rock`, etc.
 Maybe there's a name for that.
+
+### Day 3
+
+#### Part 1
+
+Split each rucksack in half, loop through the left half and look for an item
+that's also in the right.
+Initially didn't notice there would only be one duplicate and had a slightly
+more complicated solution involving an ad-hoc hash map to keep track of already
+found duplicates.
+
+#### Part 2
+
+Basically the same, but no need to split anything in half and have to check two
+other vectors instead of one.
+A dumb linear search (`vector::contains()`) worked fine for now, but I'm
+guessing, at some point, some sort of set or sorted vector + binary search will
+be necessary.
+
+#### ExtraLib
+
+##### `split_at()`
+
+Create two vectors, while `i < idx` fill up the first one, then fill the second.
+Satisfying to be able to prove a pretty much complete specification.
+
+##### `repeat()`
+
+Just call `vector::push_back()` `n` times.
+Used to initialize the ad-hoc hash map, but ended up not needing it.
+Decided to keep it anyway because I'd already proved the spec and it may be
+useful later.
