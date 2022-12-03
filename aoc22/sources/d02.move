@@ -1,7 +1,10 @@
 module aoc22::d02 {
     use std::debug;
     use std::vector;
-    use aoc22::d02_in;
+
+    struct Input has key {
+        input: vector<u8>
+    }
 
     const A: u8 = 1; // Rock
     const B: u8 = 2; // Paper
@@ -69,9 +72,14 @@ module aoc22::d02 {
         s
     }
 
-    public entry fun run() {
-        debug::print(&total_score(&d02_in::input()));
-        debug::print(&total_score2(&d02_in::input()));
+    public entry fun run() acquires Input {
+        let input = borrow_global<Input>(@0x0);
+        debug::print(&total_score(&input.input));
+        debug::print(&total_score2(&input.input));
+    }
+
+    public entry fun init(account: &signer, input: vector<u8>) {
+        move_to(account, Input { input });
     }
 
     #[test_only]

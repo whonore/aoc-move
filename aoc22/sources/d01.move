@@ -2,7 +2,10 @@ module aoc22::d01 {
     use std::debug;
     use std::vector;
     use extralib::vector as evector;
-    use aoc22::d01_in;
+
+    struct Input has key {
+        input: vector<vector<u64>>
+    }
 
     fun max_calories(v: &vector<vector<u64>>): u128 {
         let sums = evector::map_sum64(v);
@@ -54,9 +57,14 @@ module aoc22::d01 {
         max1 + max2 + max3
     }
 
-    public entry fun run() {
-        debug::print(&max_calories(&d01_in::input()));
-        debug::print(&top3_calories(&d01_in::input()));
+    public entry fun run() acquires Input {
+        let input = borrow_global<Input>(@0x0);
+        debug::print(&max_calories(&input.input));
+        debug::print(&top3_calories(&input.input));
+    }
+
+    public entry fun init(account: &signer, input: vector<vector<u64>>) {
+        move_to(account, Input { input });
     }
 
     #[test_only]

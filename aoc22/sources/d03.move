@@ -2,7 +2,10 @@ module aoc22::d03 {
     use std::debug;
     use std::vector;
     use extralib::vector as evector;
-    use aoc22::d03_in;
+
+    struct Input has key {
+        input: vector<vector<u8>>
+    }
 
     const ENOT_FOUND: u64 = 1;
 
@@ -70,9 +73,14 @@ module aoc22::d03 {
         p
     }
 
-    public entry fun run() {
-        debug::print(&total_priorities(&d03_in::input()));
-        debug::print(&total_priorities2(&d03_in::input()));
+    public entry fun run() acquires Input {
+        let input = borrow_global<Input>(@0x0);
+        debug::print(&total_priorities(&input.input));
+        debug::print(&total_priorities2(&input.input));
+    }
+
+    public entry fun init(account: &signer, input: vector<vector<u8>>) {
+        move_to(account, Input { input });
     }
 
     #[test_only]
