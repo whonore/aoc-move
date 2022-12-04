@@ -105,3 +105,12 @@ Serialization works by just creating a temporary Move script that uses
 `bcs::to_bytes()` and `debug::print()`.
 Move seems to be able to deserialize BCS from storage much faster than it can
 load a constant, at least for large vectors.
+
+### Day 4
+
+#### Part 1 and 2
+
+Basically the same solution for both (4 character difference between
+`contains()` and `overlaps()`).
+Took a little bit of thought to get the inequalities right, but easy to sanity
+check with tests.
