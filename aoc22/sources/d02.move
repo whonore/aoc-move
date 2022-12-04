@@ -78,10 +78,6 @@ module aoc22::d02 {
         debug::print(&total_score2(&input.input));
     }
 
-    public entry fun init(account: &signer, input: vector<u8>) {
-        move_to(account, Input { input });
-    }
-
     #[test_only]
     const TEST_INPUT: vector<u8> = vector[
         1, 5,

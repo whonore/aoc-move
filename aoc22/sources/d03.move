@@ -79,10 +79,6 @@ module aoc22::d03 {
         debug::print(&total_priorities2(&input.input));
     }
 
-    public entry fun init(account: &signer, input: vector<vector<u8>>) {
-        move_to(account, Input { input });
-    }
-
     #[test_only]
     const TEST_INPUT: vector<vector<u8>> = vector[
         b"vJrwpWtwJgWrhcsFMMfFFhFp",

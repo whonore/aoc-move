@@ -63,10 +63,6 @@ module aoc22::d01 {
         debug::print(&top3_calories(&input.input));
     }
 
-    public entry fun init(account: &signer, input: vector<vector<u64>>) {
-        move_to(account, Input { input });
-    }
-
     #[test_only]
     const TEST_INPUT: vector<vector<u64>> = vector[
         vector[1000, 2000, 3000],
