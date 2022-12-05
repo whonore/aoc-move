@@ -114,3 +114,24 @@ Basically the same solution for both (4 character difference between
 `contains()` and `overlaps()`).
 Took a little bit of thought to get the inequalities right, but easy to sanity
 check with tests.
+
+### Day 5
+
+#### Part 1
+
+Preprocessed the input into: number of columns of crates, crate columns as byte
+strings, triples of `number of crates, from, to`.
+Got to use `split_at()` again to parse the input into separate `crates` and
+`moves` vectors.
+Then reverse each column so it can be used efficiently as a stack with
+`vector::push_back()` and `vector::pop_back()` and follow the instructions by
+popping/pushing as many times as needed.
+Very helpful that `debug::print()` understands strings.
+
+#### Part 2
+
+Minor adjustment to `do_move()` that first moves the crates from `from` to a
+temporary stack, then reverses them and concatenates with `to`.
+Lots of other potential solutions that would require fewer iterations (e.g.,
+combine reverse and append into a single loop), but this is concise and still
+executes basically instantaneously.
