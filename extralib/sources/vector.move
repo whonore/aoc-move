@@ -216,6 +216,52 @@ module extralib::vector {
         ensures idx >= len(v) ==> result_1 == v && len(result_2) == 0;
     }
 
+    /// Check if a vector has no duplicates.
+    public fun is_unique<T>(v: &vector<T>): bool {
+        let i = 0;
+        let vlen = vector::length(v);
+
+        if (vlen == 0) {
+            return true
+        };
+
+        while ({
+            spec {
+                invariant i < vlen;
+                invariant forall m in 0..i: forall n in range(v) where m != n: v[m] != v[n];
+            };
+            i < vlen - 1
+        }) {
+            let j = i + 1;
+            let x = vector::borrow(v, i);
+            while ({
+                spec {
+                    invariant i < j && j <= vlen;
+                    invariant forall n in (i + 1)..j: v[i] != v[n];
+                };
+                j < vlen
+            }) {
+                let y = vector::borrow(v, j);
+                if (x == y) {
+                    return false
+                };
+                j = j + 1;
+            };
+            i = i + 1;
+        };
+        true
+    }
+
+    spec is_unique {
+        aborts_if false;
+        ensures
+            result
+            <==>
+            (forall i in range(v):
+               forall j in range(v) where i != j:
+                 v[i] != v[j]);
+    }
+
     #[test]
     fun test_sum64() {
         assert!(sum64_in(&vector[1,2,3,4,5], 1, 3) == 5, 0);
@@ -277,5 +323,15 @@ module extralib::vector {
         assert!(v1 == vector[] && v2 == vector[1,2,3,4,5], 0);
         let (v1, v2) = split_at(&vector[1,2,3,4,5], 5);
         assert!(v1 == vector[1,2,3,4,5] && v2 == vector[], 0);
+    }
+
+    #[test]
+    fun test_is_unique() {
+        assert!(is_unique<u64>(&vector[]), 0);
+        assert!(is_unique(&vector[1]), 0);
+        assert!(is_unique(&vector[1,2]), 0);
+        assert!(is_unique(&vector[true,false]), 0);
+        assert!(!is_unique(&vector[1,1]), 0);
+        assert!(!is_unique(&vector[1,2,1]), 0);
     }
 }

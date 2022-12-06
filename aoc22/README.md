@@ -135,3 +135,19 @@ temporary stack, then reverses them and concatenates with `to`.
 Lots of other potential solutions that would require fewer iterations (e.g.,
 combine reverse and append into a single loop), but this is concise and still
 executes basically instantaneously.
+
+### Day 6
+
+#### Part 1 and 2
+
+Keep track of a sliding window and iterate until it contains no duplicates.
+Parts 1 and 2 are identical except for the size of the window.
+`repeat()` ended up being useful to intialize the window and `is_unique()` made
+the rest easy.
+
+#### ExtraLib
+
+##### `is_unique()`
+
+For every `i`, check that `v[i]` doesn't equal anything from `i + 1` to the end.
+Another one where the specification is pretty much complete.

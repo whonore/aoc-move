@@ -1,7 +1,7 @@
 [package]
 name = "aoc22"
 # year.month.day
-version = "2022.12.5"
+version = "2022.12.6"
 
 [addresses]
 std =  "0x1"
