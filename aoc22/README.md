@@ -151,3 +151,68 @@ the rest easy.
 
 For every `i`, check that `v[i]` doesn't equal anything from `i + 1` to the end.
 Another one where the specification is pretty much complete.
+
+### Day 7
+
+#### Part 1
+
+Way more involved than previous days.
+First time doing some string parsing in Move instead of preprocessing in Python
+since it seemed like part of the challenge this time.
+Fortunately it's easy to recognize commands vs. directories vs. files by the
+first character.
+Strategy is to parse the commands, keeping track of the current directory, and
+build up the file system every time a directory or file appears.
+The file system is a "map" (vector) from indices to paths, plus another map from
+indices to "directory entries".
+Directory entries keep track of metadata like file size, the parent (index),
+children (also indices), etc.
+Then compute each directory's size by recursively looping through its children
+and summing the file sizes.
+Keep only the ones below the cutoff and we're done.
+
+Also added some basic well-formedness struct invariants for `FileSystem` and `DirEntry`.
+The prover crashes if `debug::print` is anywhere so had to write a wrapper
+script that first comments those out.
+
+#### Part 2
+
+Figure out the minimum necessary directory size by subtracting the size of the
+root directory from the total disk space and then subtract that from the needed
+free space.
+Compute each directory's size again and find the minimum that meets the cutoff.
+Thought about memoizing directory size since they never change and computing the
+root's size already requires computing every other directory's size, but it
+didn't seem to be necessary performance-wise.
+
+#### ExtraLib
+
+##### `append_new()`
+
+Concatenate two vectors and return a new one instead of updating in-place like
+`vector::append()`.
+
+##### `split_by()`, `join_by()`
+
+Split a vector into a vector of vectors around a given delimiter, and its inverse.
+Lots of weird corner cases with singleton and empty vectors, mostly follows what
+Python does.
+The specifications were tricky to get past the prover.
+`split_by()` needed the invariant that everything in the input vector is in some
+sub-vector of the output stated as "an index exists at which there is a
+sub-vector" rather than directly saying "there exists a sub-vector".
+It also needed an inline hint that just restates the loop invariant, which seems weird.
+`join_by()` was similarly problematic, and I ended up adding an inline
+assumption because I couldn't find a way otherwise to convince the prover that,
+after `vector::append(v, u)`, `v` contains everything `u` did.
+
+##### `min64_in()`, `min64()`
+
+Just a simple copy-paste and modification of the corresponding `max` functions.
+
+##### `parse_u64()`
+
+Read each character, find its offset from ASCII `'0'`, multiply the running
+total by 10, add the new digit.
+Not much to prove except that it aborts if the input is empty or has any
+non-digit characters.

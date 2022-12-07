@@ -154,6 +154,55 @@ module extralib::vector {
         ensures len(v) > 0 ==> (forall x in v: result_2 >= x);
     }
 
+    /// Find the minimum value and its position in `v[start..endx]`.
+    public fun min64_in(v: &vector<u64>, start: u64, endx: u64): (u64, u64) {
+        if (start >= endx) {
+            return (0, 0)
+        };
+
+        let min_idx = start;
+        let min = *vector::borrow(v, min_idx);
+        let i = start;
+        while ({
+            spec {
+                invariant in_range(start..endx + 1, i);
+                invariant in_range(start..i + 1, min_idx);
+                invariant in_range(start..endx, min_idx);
+                invariant v[min_idx] == min;
+                invariant forall j in (start..i): min <= v[j];
+            };
+            i < endx
+        }) {
+            let x = *vector::borrow(v, i);
+            if (x < min) {
+                min_idx = i;
+                min = x;
+            };
+            i = i + 1;
+        };
+        (min_idx, min)
+    }
+
+    spec min64_in {
+        requires endx <= len(v);
+        aborts_if false;
+        ensures start < endx ==> in_range(start..endx, result_1);
+        ensures start < endx ==> v[result_1] == result_2;
+        ensures start < endx ==> (forall x in v[start..endx]: result_2 <= x);
+    }
+
+    /// Find the minimum value and its position in `v`.
+    public fun min64(v: &vector<u64>): (u64, u64) {
+        min64_in(v, 0, vector::length(v))
+    }
+
+    spec min64 {
+        aborts_if false;
+        ensures len(v) > 0 ==> in_range(v, result_1);
+        ensures len(v) > 0 ==> v[result_1] == result_2;
+        ensures len(v) > 0 ==> (forall x in v: result_2 <= x);
+    }
+
     /// Create a vector of a length `n` by repeating `default`.
     public fun repeat<T: copy>(n: u64, default: &T): vector<T> {
         let v = vector[];
@@ -177,6 +226,18 @@ module extralib::vector {
         aborts_if false;
         ensures len(result) == n;
         ensures forall x in result: x == default;
+    }
+
+    /// Concatenate two vectors into a new vector.
+    public fun append_new<T: copy>(v1: &vector<T>, v2: &vector<T>): vector<T> {
+        let v = *v1;
+        vector::append(&mut v, *v2);
+        v
+    }
+
+    spec append_new {
+        aborts_if false;
+        ensures result == concat(v1, v2);
     }
 
     /// Split a vector into two at `idx` (`v[idx]` will be the first element of
@@ -214,6 +275,88 @@ module extralib::vector {
         ensures concat(result_1, result_2) == v;
         ensures idx < len(v) ==> result_1 == v[0..idx] && result_2 == v[idx..len(v)];
         ensures idx >= len(v) ==> result_1 == v && len(result_2) == 0;
+    }
+
+    /// Split a vector around `delim`.
+    public fun split_by<T: copy + drop>(v: &vector<T>, delim: &T): vector<vector<T>> {
+        let vs = vector[vector[]];
+        let vidx = 0;
+
+        let i = 0;
+        let vlen = vector::length(v);
+        if (vlen == 0) {
+            return vector[]
+        };
+        while ({
+            spec {
+                invariant i <= vlen;
+                invariant vidx == len(vs) - 1;
+                // NOTE: For some reason the prover likes this version much
+                // more than the equivalent commented-out versions.
+                invariant forall j in 0..i where v[j] != delim: exists k in 0..vidx + 1:
+                    contains(vs[k], v[j]);
+                // invariant forall j in 0..i where v[j] != delim: exists k in range(vs):
+                //     contains(vs[k], v[j]);
+                // invariant forall j in 0..i where v[j] != delim: exists u in vs: contains(u, v[j]);
+                invariant forall w in vs: forall x in w: contains(v, x);
+                invariant forall w in vs: !contains(w, delim);
+            };
+            i < vlen
+        }) {
+            let x = *vector::borrow(v, i);
+            if (x != *delim) {
+                let w = vector::borrow_mut(&mut vs, vidx);
+                vector::push_back(w, x);
+            } else {
+                vector::push_back(&mut vs, vector[]);
+                vidx = vidx + 1;
+                // NOTE: The prover needs this seemingly redundant hint.
+                spec {
+                    assert forall j in 0..i where v[j] != delim: exists k in 0..vidx:
+                        contains(vs[k], v[j]);
+                };
+            };
+            i = i + 1;
+        };
+        vs
+    }
+
+    spec split_by {
+        aborts_if false;
+        ensures forall x in v where x != delim: exists w in result: contains(w, x);
+        ensures forall w in result: forall x in w: contains(v, x);
+        ensures forall w in result: !contains(w, delim);
+    }
+
+    /// Join a vector of vectors using `delim`.
+    public fun join_by<T: copy>(vs: &vector<vector<T>>, delim: &T): vector<T> {
+        let v = vector[];
+
+        let i = 0;
+        let vlen = vector::length(vs);
+        while ({
+            spec {
+                invariant i <= vlen;
+                invariant forall j in 0..i: forall x in vs[j]: contains(v, x);
+                invariant forall x in v where x != delim: exists j in 0..i: contains(vs[j], x);
+            };
+            i < vlen
+        }) {
+            vector::append(&mut v, *vector::borrow(vs, i));
+            // NOTE: Unsure why the prover can't see this.
+            spec { assume forall x in vs[i]: contains(v, x); };
+            if (i + 1 != vlen) {
+                vector::push_back(&mut v, *delim);
+            };
+            i = i + 1;
+        };
+        v
+    }
+
+    spec join_by {
+        aborts_if false;
+        ensures forall v in vs: forall x in v: contains(result, x);
+        ensures forall x in result where x != delim: exists w in vs: contains(w, x);
     }
 
     /// Check if a vector has no duplicates.
@@ -295,6 +438,20 @@ module extralib::vector {
     }
 
     #[test]
+    fun test_min64() {
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 1, 3);
+        assert!(idx == 2 && v == 2, 0);
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 3, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 100, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = min64(&vector[1,3,2,5,4]);
+        assert!(idx == 0 && v == 1, 0);
+        let (idx, v) = min64(&vector[]);
+        assert!(idx == 0 && v == 0, 0);
+    }
+
+    #[test]
     fun test_max128() {
         let (idx, v) = max128_in(&vector[1,3,2,5,4], 1, 3);
         assert!(idx == 1 && v == 3, 0);
@@ -316,6 +473,14 @@ module extralib::vector {
     }
 
     #[test]
+    fun test_append_new() {
+        assert!(append_new(&vector[1,2], &vector[3,4]) == vector[1,2,3,4], 0);
+        assert!(append_new(&vector[1,2], &vector[]) == vector[1,2], 0);
+        assert!(append_new(&vector[], &vector[3,4]) == vector[3,4], 0);
+        assert!(append_new(&vector<u8>[], &vector[]) == vector[], 0);
+    }
+
+    #[test]
     fun test_split_at() {
         let (v1, v2) = split_at(&vector[1,2,3,4,5], 3);
         assert!(v1 == vector[1,2,3] && v2 == vector[4,5], 0);
@@ -323,6 +488,30 @@ module extralib::vector {
         assert!(v1 == vector[] && v2 == vector[1,2,3,4,5], 0);
         let (v1, v2) = split_at(&vector[1,2,3,4,5], 5);
         assert!(v1 == vector[1,2,3,4,5] && v2 == vector[], 0);
+    }
+
+    #[test]
+    fun test_split_by() {
+        let ascii_b: u8 = 98;
+        assert!(split_by(&vector[1,2,3], &2) == vector[vector[1],vector[3]], 0);
+        assert!(split_by(&vector[1,2,2,3], &2) == vector[vector[1],vector[],vector[3]], 0);
+        assert!(split_by(&vector[1,2,3], &4) == vector[vector[1,2,3]], 0);
+        assert!(split_by(&vector[1], &2) == vector[vector[1]], 0);
+        assert!(split_by(&vector[2], &2) == vector[vector[],vector[]], 0);
+        assert!(split_by(&vector[], &2) == vector[], 0);
+        assert!(split_by(&b"abcdbe", &ascii_b) == vector[b"a", b"cd", b"e"], 0);
+    }
+
+    #[test]
+    fun test_join_by() {
+        let ascii_b: u8 = 98;
+        assert!(join_by(&vector[vector[1],vector[3]], &2) == vector[1,2,3], 0);
+        assert!(join_by(&vector[vector[1],vector[],vector[3]], &2) == vector[1,2,2,3], 0);
+        assert!(join_by(&vector[vector[1,2,3]], &4) == vector[1,2,3], 0);
+        assert!(join_by(&vector[vector[1]], &2) == vector[1], 0);
+        assert!(join_by(&vector[vector[],vector[]], &2) == vector[2], 0);
+        assert!(join_by(&vector[], &2) == vector[], 0);
+        assert!(join_by(&vector[b"a", b"cd", b"e"], &ascii_b) == b"abcdbe", 0);
     }
 
     #[test]
