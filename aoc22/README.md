@@ -142,7 +142,7 @@ executes basically instantaneously.
 
 Keep track of a sliding window and iterate until it contains no duplicates.
 Parts 1 and 2 are identical except for the size of the window.
-`repeat()` ended up being useful to intialize the window and `is_unique()` made
+`repeat()` ended up being useful to initialize the window and `is_unique()` made
 the rest easy.
 
 #### ExtraLib
