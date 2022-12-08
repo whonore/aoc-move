@@ -2,6 +2,10 @@ module aoc22::d02 {
     use std::debug;
     use std::vector;
 
+    spec module {
+        pragma verify = false;
+    }
+
     struct Input has key {
         input: vector<u8>
     }

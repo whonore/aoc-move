@@ -4,6 +4,10 @@ module aoc22::d05 {
     use std::vector;
     use extralib::vector as evector;
 
+    spec module {
+        pragma verify = false;
+    }
+
     struct Input has key {
         input: vector<vector<u8>>
     }

@@ -3,6 +3,10 @@ module aoc22::d01 {
     use std::vector;
     use extralib::vector as evector;
 
+    spec module {
+        pragma verify = false;
+    }
+
     struct Input has key {
         input: vector<vector<u64>>
     }
