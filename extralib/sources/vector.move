@@ -57,6 +57,55 @@ module extralib::vector {
     }
 
     /// Find the maximum value and its position in `v[start..endx]`.
+    public fun max8_in(v: &vector<u8>, start: u64, endx: u64): (u64, u8) {
+        if (start >= endx) {
+            return (0, 0)
+        };
+
+        let max_idx = start;
+        let max = *vector::borrow(v, max_idx);
+        let i = start;
+        while ({
+            spec {
+                invariant in_range(start..endx + 1, i);
+                invariant in_range(start..i + 1, max_idx);
+                invariant in_range(start..endx, max_idx);
+                invariant v[max_idx] == max;
+                invariant forall j in (start..i): max >= v[j];
+            };
+            i < endx
+        }) {
+            let x = *vector::borrow(v, i);
+            if (x > max) {
+                max_idx = i;
+                max = x;
+            };
+            i = i + 1;
+        };
+        (max_idx, max)
+    }
+
+    spec max8_in {
+        requires endx <= len(v);
+        aborts_if false;
+        ensures start < endx ==> in_range(start..endx, result_1);
+        ensures start < endx ==> v[result_1] == result_2;
+        ensures start < endx ==> (forall x in v[start..endx]: result_2 >= x);
+    }
+
+    /// Find the maximum value and its position in `v`.
+    public fun max8(v: &vector<u8>): (u64, u8) {
+        max8_in(v, 0, vector::length(v))
+    }
+
+    spec max8 {
+        aborts_if false;
+        ensures len(v) > 0 ==> in_range(v, result_1);
+        ensures len(v) > 0 ==> v[result_1] == result_2;
+        ensures len(v) > 0 ==> (forall x in v: result_2 >= x);
+    }
+
+    /// Find the maximum value and its position in `v[start..endx]`.
     public fun max64_in(v: &vector<u64>, start: u64, endx: u64): (u64, u64) {
         if (start >= endx) {
             return (0, 0)
@@ -405,6 +454,54 @@ module extralib::vector {
                  v[i] != v[j]);
     }
 
+    /// Swap a 2-D vector's rows with its columns.
+    public fun transpose<T: copy>(v: &vector<vector<T>>): vector<vector<T>> {
+        let vT = vector[];
+        let rmax = vector::length(v);
+        let cmax = vector::length(vector::borrow(v, 0));
+        let c = 0;
+
+        while ({
+            spec {
+                invariant c <= cmax;
+                invariant len(vT) == c;
+                invariant forall i in 0..c: len(vT[i]) == rmax;
+                invariant forall i in 0..rmax: forall j in 0..c: v[i][j] == vT[j][i];
+            };
+            c < cmax
+        }) {
+            let r = 0;
+            let rowT = vector[];
+            while ({
+                spec {
+                    invariant r <= rmax;
+                    invariant len(rowT) == r;
+                    invariant forall i in 0..r: v[i][c] == rowT[i];
+                };
+                r < rmax
+            }) {
+                let x = *vector::borrow(vector::borrow(v, r), c);
+                vector::push_back(&mut rowT, x);
+                r = r + 1;
+            };
+            vector::push_back(&mut vT, rowT);
+            c = c + 1;
+        };
+        vT
+    }
+
+    spec transpose {
+        let rmax = len(v);
+        let cmax = len(v[0]);
+        requires rmax > 0;
+        requires cmax > 0;
+        requires forall col in v: len(col) == cmax;
+        aborts_if false;
+        ensures len(result) == cmax;
+        ensures forall col in result: len(col) == rmax;
+        ensures forall r in 0..rmax: forall c in 0..cmax: v[r][c] == result[c][r];
+    }
+
     #[test]
     fun test_sum64() {
         assert!(sum64_in(&vector[1,2,3,4,5], 1, 3) == 5, 0);
@@ -424,6 +521,20 @@ module extralib::vector {
     }
 
     #[test]
+    fun test_max8() {
+        let (idx, v) = max8_in(&vector[1,3,2,5,4], 1, 3);
+        assert!(idx == 1 && v == 3, 0);
+        let (idx, v) = max8_in(&vector[1,3,2,5,4], 3, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = max8_in(&vector[1,3,2,5,4], 100, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = max8(&vector[1,3,2,5,4]);
+        assert!(idx == 3 && v == 5, 0);
+        let (idx, v) = max8(&vector[]);
+        assert!(idx == 0 && v == 0, 0);
+    }
+
+    #[test]
     fun test_max64() {
         let (idx, v) = max64_in(&vector[1,3,2,5,4], 1, 3);
         assert!(idx == 1 && v == 3, 0);
@@ -438,20 +549,6 @@ module extralib::vector {
     }
 
     #[test]
-    fun test_min64() {
-        let (idx, v) = min64_in(&vector[1,3,2,5,4], 1, 3);
-        assert!(idx == 2 && v == 2, 0);
-        let (idx, v) = min64_in(&vector[1,3,2,5,4], 3, 2);
-        assert!(idx == 0 && v == 0, 0);
-        let (idx, v) = min64_in(&vector[1,3,2,5,4], 100, 2);
-        assert!(idx == 0 && v == 0, 0);
-        let (idx, v) = min64(&vector[1,3,2,5,4]);
-        assert!(idx == 0 && v == 1, 0);
-        let (idx, v) = min64(&vector[]);
-        assert!(idx == 0 && v == 0, 0);
-    }
-
-    #[test]
     fun test_max128() {
         let (idx, v) = max128_in(&vector[1,3,2,5,4], 1, 3);
         assert!(idx == 1 && v == 3, 0);
@@ -462,6 +559,20 @@ module extralib::vector {
         let (idx, v) = max128(&vector[1,3,2,5,4]);
         assert!(idx == 3 && v == 5, 0);
         let (idx, v) = max128(&vector[]);
+        assert!(idx == 0 && v == 0, 0);
+    }
+
+    #[test]
+    fun test_min64() {
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 1, 3);
+        assert!(idx == 2 && v == 2, 0);
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 3, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = min64_in(&vector[1,3,2,5,4], 100, 2);
+        assert!(idx == 0 && v == 0, 0);
+        let (idx, v) = min64(&vector[1,3,2,5,4]);
+        assert!(idx == 0 && v == 1, 0);
+        let (idx, v) = min64(&vector[]);
         assert!(idx == 0 && v == 0, 0);
     }
 
@@ -522,5 +633,19 @@ module extralib::vector {
         assert!(is_unique(&vector[true,false]), 0);
         assert!(!is_unique(&vector[1,1]), 0);
         assert!(!is_unique(&vector[1,2,1]), 0);
+    }
+
+    #[test]
+    fun test_transpose() {
+        assert!(
+            transpose(&vector[vector[1,2,3],vector[4,5,6]])
+            == vector[vector[1,4],vector[2,5],vector[3,6]],
+            0
+        );
+        assert!(
+            transpose(&vector[vector[1,4],vector[2,5],vector[3,6]])
+            == vector[vector[1,2,3],vector[4,5,6]],
+            0
+        );
     }
 }

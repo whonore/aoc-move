@@ -216,3 +216,48 @@ Read each character, find its offset from ASCII `'0'`, multiply the running
 total by 10, add the new digit.
 Not much to prove except that it aborts if the input is empty or has any
 non-digit characters.
+
+### Day 8
+
+#### Part 1
+
+Check the visibility of a tree at `(r, c)` by seeing if it's the max in any of
+`trees[r][0..c]`, `trees[r][c + 1..]`, `trees[0..r][c]`, `trees[r + 1, ..]`.
+Use `vector::max8_in()` for the slices and a transposed version of `trees` for
+the columns.
+
+#### Part 2
+
+Couldn't reuse Part 1's solution since we need the index of the nearest
+greater-or-equal tree in each direction.
+Similar idea though, for each row and column, search forwards and backwards for
+the first greater-or-equal element, compute the distance, and multiply to get the score.
+Gave `find_ge()` a `rev` argument to have it loop backwards instead of writing a
+second function or reversing the list.
+Lots of off-by-one errors, but that's what tests are for.
+
+#### ExtraLib
+
+##### `vector::transpose()`
+
+Swap the rows and columns of a 2-D vector.
+Must be non-empty and rectangular.
+Surprisingly easy to verify.
+I'm noticing the prover generally prefers loop invariants to use indices rather
+than vector slices (e.g., `forall j in 0..i: P(v[i])` rather than `forall x in
+v[0..i]: P(x)`).
+Seems like it should be able to tell they're equivalent.
+
+##### `math::max64()`, `math::min64()`, `math::minmax64()`, `math::absdiff64()`
+
+Return the bigger or smaller or both of two numbers, and compute the distance
+between two numbers.
+Easy enough to do without functions, but common enough to be worth it I think.
+It looks like `std::compare::cmp_bcs_bytes()` could work for a generic numeric
+comparison function.
+Maybe I'll try it if I keep having to copy functions for different bit widths.
+Not sure how well the prover will handle it though.
+
+##### `vector::max8_in()`, `vector::max8()`
+
+Exactly the same as other `max` functions.
