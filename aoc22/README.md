@@ -24,15 +24,15 @@ found the max index, then the max of everything around that index, and so on.
 
 #### ExtraLib
 
-##### `sum64_in()`, `sum64()`, `map_sum64()`
+##### `vector::sum64_in()`, `vector::sum64()`, `vector::map_sum64()`
 
 All pretty straightforward, but not much to prove except that they don't abort.
 Made the `_in()` version in case it's useful at some point to operate on vector slices.
-Was able to convince the prover that `sum_in()` doesn't overflow since a vector
-can only be `MAX_U64`-long and every element is at most `MAX_U64` and `MAX_U64 *
-MAX_U64 <= MAX_U128`.
+Was able to convince the prover that `vector::sum64_in()` doesn't overflow since
+a vector can only be `MAX_U64`-long and every element is at most `MAX_U64` and
+`MAX_U64 * MAX_U64 <= MAX_U128`.
 
-##### `max64_in()`, `max64()`, `max128_in()`, `max128()`
+##### `vector::max64_in()`, `vector::max64()`, `vector::max128_in()`, `vector::max128()`
 
 Slightly more interesting because the spec can actually express the correctness
 property.
@@ -45,8 +45,8 @@ Need some sort of generic number trait or macros maybe.
 #### Part 1
 
 Pretty easy, just loop through each round, compute the score, and sum.
-Would've been nicer to reuse `sum64()`, but would still need the explicit loop
-to map `score()` anyway, so it's not really worth it.
+Would've been nicer to reuse `vector::sum64()`, but would still need the
+explicit loop to map `score()` anyway, so it's not really worth it.
 Apparently constants can't appear in other constants so the inputs have to use
 `1`, `2`, etc. instead of `A`, `B`.
 Compilation times seem pretty slow, maybe from the giant constant input vectors.
@@ -83,12 +83,12 @@ be necessary.
 
 #### ExtraLib
 
-##### `split_at()`
+##### `vector::split_at()`
 
 Create two vectors, while `i < idx` fill up the first one, then fill the second.
 Satisfying to be able to prove a pretty much complete specification.
 
-##### `repeat()`
+##### `vector::repeat()`
 
 Just call `vector::push_back()` `n` times.
 Used to initialize the ad-hoc hash map, but ended up not needing it.
@@ -121,8 +121,8 @@ check with tests.
 
 Preprocessed the input into: number of columns of crates, crate columns as byte
 strings, triples of `number of crates, from, to`.
-Got to use `split_at()` again to parse the input into separate `crates` and
-`moves` vectors.
+Got to use `vector::split_at()` again to parse the input into separate `crates`
+and `moves` vectors.
 Then reverse each column so it can be used efficiently as a stack with
 `vector::push_back()` and `vector::pop_back()` and follow the instructions by
 popping/pushing as many times as needed.
@@ -142,12 +142,12 @@ executes basically instantaneously.
 
 Keep track of a sliding window and iterate until it contains no duplicates.
 Parts 1 and 2 are identical except for the size of the window.
-`repeat()` ended up being useful to initialize the window and `is_unique()` made
-the rest easy.
+`vector::repeat()` ended up being useful to initialize the window and
+`vector::is_unique()` made the rest easy.
 
 #### ExtraLib
 
-##### `is_unique()`
+##### `vector::is_unique()`
 
 For every `i`, check that `v[i]` doesn't equal anything from `i + 1` to the end.
 Another one where the specification is pretty much complete.
@@ -172,7 +172,7 @@ and summing the file sizes.
 Keep only the ones below the cutoff and we're done.
 
 Also added some basic well-formedness struct invariants for `FileSystem` and `DirEntry`.
-The prover crashes if `debug::print` is anywhere so had to write a wrapper
+The prover crashes if `debug::print()` is anywhere so had to write a wrapper
 script that first comments those out.
 
 #### Part 2
@@ -187,30 +187,30 @@ didn't seem to be necessary performance-wise.
 
 #### ExtraLib
 
-##### `append_new()`
+##### `vector::append_new()`
 
 Concatenate two vectors and return a new one instead of updating in-place like
 `vector::append()`.
 
-##### `split_by()`, `join_by()`
+##### `vector::split_by()`, `vector::join_by()`
 
 Split a vector into a vector of vectors around a given delimiter, and its inverse.
 Lots of weird corner cases with singleton and empty vectors, mostly follows what
 Python does.
 The specifications were tricky to get past the prover.
-`split_by()` needed the invariant that everything in the input vector is in some
-sub-vector of the output stated as "an index exists at which there is a
+`vector::split_by()` needed the invariant that everything in the input vector is
+in some sub-vector of the output stated as "an index exists at which there is a
 sub-vector" rather than directly saying "there exists a sub-vector".
 It also needed an inline hint that just restates the loop invariant, which seems weird.
-`join_by()` was similarly problematic, and I ended up adding an inline
+`vector::join_by()` was similarly problematic, and I ended up adding an inline
 assumption because I couldn't find a way otherwise to convince the prover that,
 after `vector::append(v, u)`, `v` contains everything `u` did.
 
-##### `min64_in()`, `min64()`
+##### `vector::min64_in()`, `vector::min64()`
 
 Just a simple copy-paste and modification of the corresponding `max` functions.
 
-##### `parse_u64()`
+##### `string::parse_u64()`
 
 Read each character, find its offset from ASCII `'0'`, multiply the running
 total by 10, add the new digit.
