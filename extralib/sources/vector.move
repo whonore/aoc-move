@@ -502,6 +502,34 @@ module extralib::vector {
         ensures forall r in 0..rmax: forall c in 0..cmax: v[r][c] == result[c][r];
     }
 
+    /// Count the number of `x` contained by `v`.
+    public fun count<T>(v: &vector<T>, x: &T): u64 {
+        let cnt = 0;
+        let i = 0;
+        let vlen = vector::length(v);
+
+        while ({
+            spec {
+                invariant i <= vlen;
+                invariant cnt <= i;
+                invariant cnt == 0 <==> !contains(v[0..i], x);
+            };
+            i < vlen
+        }) {
+            if (vector::borrow(v, i) == x) {
+                cnt = cnt + 1;
+            };
+            i = i + 1;
+        };
+        cnt
+    }
+
+    spec count {
+        aborts_if false;
+        ensures result <= len(v);
+        ensures result == 0 <==> !contains(v, x);
+    }
+
     #[test]
     fun test_sum64() {
         assert!(sum64_in(&vector[1,2,3,4,5], 1, 3) == 5, 0);
@@ -647,5 +675,14 @@ module extralib::vector {
             == vector[vector[1,2,3],vector[4,5,6]],
             0
         );
+    }
+
+    #[test]
+    fun test_count() {
+        assert!(count(&vector[1,2,3], &1) == 1, 0);
+        assert!(count(&vector[1,2,3,1], &1) == 2, 0);
+        assert!(count(&vector[true,false,false], &false) == 2, 0);
+        assert!(count(&vector[1,2,3], &4) == 0, 0);
+        assert!(count(&vector[], &1) == 0, 0);
     }
 }

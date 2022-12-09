@@ -5,6 +5,10 @@ module extralib::string {
 
     const ASCII_0: u8 = 48;
 
+    public fun digit(c: u8): u8 {
+        c - ASCII_0
+    }
+
     public fun parse_u64(s: &vector<u8>): u64 {
         let x = 0;
         let slen = vector::length(s);
@@ -19,7 +23,7 @@ module extralib::string {
         }) {
             let c = *vector::borrow(s, i);
             assert!(ASCII_0 <= c && c <= ASCII_0 + 9, EINVALID_UINT);
-            x = (x * 10) + ((c - ASCII_0) as u64);
+            x = (x * 10) + (digit(c) as u64);
             i = i + 1;
         };
         x
@@ -29,6 +33,16 @@ module extralib::string {
         pragma aborts_if_is_partial;
         aborts_if len(s) == 0;
         aborts_if exists c in s: !in_range(ASCII_0..ASCII_0 + 10, c);
+    }
+
+    #[test]
+    fun test_digit() {
+        let digits = b"0123456789";
+        let i = 0;
+        while (i < 10) {
+            assert!(digit(*vector::borrow(&digits, i)) == (i as u8), 0);
+            i = i + 1;
+        };
     }
 
     #[test]

@@ -261,3 +261,45 @@ Not sure how well the prover will handle it though.
 ##### `vector::max8_in()`, `vector::max8()`
 
 Exactly the same as other `max` functions.
+
+### Day 9
+
+#### Part 1
+
+Basic idea isn't too bad: keep track of head and tail positions, move head
+according to instructions, adjust tail if either the x or y coordinate is more
+than 1 away, keep a set of the visited tail positions, return the count.
+Couple tricky things:
+- Can't have negatives so the starting position is important.
+  Solved by counting the number of "negative" moves (left and down) and setting
+  those as initial x and y, respectively.
+- How to avoid double counting already visited positions?
+  Implemented another ad-hoc hash map by converting every x-y pair to a unique
+  index (`y * width + x`).
+  Much faster than using `vector::contains()`, but still kind of slow (~7.5 seconds).
+  Some quick experimenting suggests most of that time is initializing the vector
+  with `vector::repeat()`.
+  Might see if it's possible to get that down without implementing a full-blown
+  binary search tree or something.
+- Not difficult to fix, but spent a while getting the wrong solution because I
+  didn't realize move distances could be more than 1 digit.
+
+#### Part 2
+
+Extend Part 1 by keeping a vector of positions.
+Move the head the same way as before, then, for each consecutive pair of knots,
+move as if they were the head and tail in Part 1, keep track of tail positions, done.
+
+#### ExtraLib
+
+##### `vector::count()`
+
+Count the number of times a given element appears.
+Thought this might be useful to count the number of visited positions, but it
+ended up being too slow.
+
+##### `string::digit()`
+
+Parse a single character into a digit.
+Factored out of `parse_u64()` and used in Part 1 until I realized move distances
+can be more than 1 digit.
