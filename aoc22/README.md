@@ -284,6 +284,11 @@ Couple tricky things:
 - Not difficult to fix, but spent a while getting the wrong solution because I
   didn't realize move distances could be more than 1 digit.
 
+##### Update
+
+Switched to using a sparse array for the visited set, which reduced the time for
+both parts to ~1.5 seconds.
+
 #### Part 2
 
 Extend Part 1 by keeping a vector of positions.
@@ -303,3 +308,28 @@ ended up being too slow.
 Parse a single character into a digit.
 Factored out of `parse_u64()` and used in Part 1 until I realized move distances
 can be more than 1 digit.
+
+##### `sparse::new()`, `sparse::get()`, `sparse::set()`, `sparse::is_set()`
+
+A simple sparse array implementation using a vector of "buckets" of fixed size
+(currently 1024).
+Very helpful for hash maps where the keys might be very spaced out since Move
+doesn't seem to do well with building large vectors.
+Might even be a good basis for a generic hash map using `hash::sha3_256()` and
+`bcs::to_bytes()`.
+
+Also a good demonstration of some of the limitations of global/struct invariants
+in Move.
+A simple one for `SparseArray` is every bucket has at most `BUCKET_SIZE` elements.
+The problem is the prover only checks if the invariant is preserved when the
+struct is created or a mutable reference to it is dropped.
+The problem is functions like `set()` don't drop the mutable reference inside
+the module being verified.
+So, it will happily accept an implementation of `set()` that breaks the
+invariant only to blow up later in someone else's code when they call it.
+A hacky workaround is to define a private function that takes an owned
+`SparseArray` and calls `set()` just to trigger the check.
+However, in this case it fails due to an unrelated issue where the prover thinks
+an invariant in `std::option` is broken (not very modular, these invariants)
+even though that doesn't make any sense.
+For now we'll just have to trust that the invariant holds.

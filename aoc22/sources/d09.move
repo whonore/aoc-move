@@ -2,6 +2,7 @@ module aoc22::d09 {
     use std::debug;
     use std::vector;
     use extralib::math;
+    use extralib::sparse;
     use extralib::string as estring;
     use extralib::vector as evector;
 
@@ -80,9 +81,9 @@ module aoc22::d09 {
         let (nleft, nright, ndown, nup) = find_extent(moves);
         let knots = evector::repeat(nknots, &vector[nleft, ndown]);
         let (width, height) = (nleft + nright + 1, ndown + nup + 1);
-        let visited = evector::repeat(width * height, &false);
+        let visited = sparse::new(width * height);
         let nvisited = 1;
-        *vector::borrow_mut(&mut visited, ndown * width + nleft) = true;
+        sparse::set(&mut visited, ndown * width + nleft, true);
 
         while (i < nmoves) {
             let (dir, dist) = parse_move(vector::borrow(moves, i));
@@ -117,10 +118,10 @@ module aoc22::d09 {
 
                     if (k == nknots - 1) {
                         let idx = y * width + x;
-                        if (!*vector::borrow(&visited, idx)) {
+                        if (!sparse::is_set(&visited, idx)) {
                             nvisited = nvisited + 1;
                         };
-                        *vector::borrow_mut(&mut visited, idx) = true;
+                        sparse::set(&mut visited, idx, true);
                     };
                     k = k + 1;
                 };
