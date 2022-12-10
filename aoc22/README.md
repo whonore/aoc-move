@@ -333,3 +333,38 @@ However, in this case it fails due to an unrelated issue where the prover thinks
 an invariant in `std::option` is broken (not very modular, these invariants)
 even though that doesn't make any sense.
 For now we'll just have to trust that the invariant holds.
+
+### Day 10
+
+#### Part 1
+
+Parse the instructions, loop the appropriate number of cycles, check every time
+if its one we're interested in, record the current "signal strength" if so, then
+adjust the register if the instruction was `addx`.
+Finally, sum the signal strengths.
+All pretty easy thanks to the `extralib` functions.
+
+#### Part 2
+
+Very similar to Part 1.
+Instruction parsing and execution is the same, but this time check if the
+current pixel (`cycle % 40`) is contained in the sprite (`[X - 1, X, X + 1]`),
+and draw `#` if so and `.` otherwise.
+
+#### ExtraLib
+
+##### `vector::last()`, `vector::last_mut()`
+
+Immutable and mutable borrows of the last element.
+Just useful helpers.
+
+##### `string::parse_64_in()`
+
+Parse a string slice.
+Made it possible to reuse for `signed64::parse()`.
+
+##### `signed64::pos()`, `signed64::neg()`, `signed64::is_pos()`, `signed64::is_neg()`, `signed64::abs()`, `signed64::opp()`, `signed64::add()`, `signed64::sub()`, `signed64::parse()`
+
+A signed 64-bit integer implementation that wraps a `u64` with a flag for the sign.
+Everything is straightforward except a few functions have special cases for `0`
+to prevent `-0`, which is also enforced by a struct invariant.

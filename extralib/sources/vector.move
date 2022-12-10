@@ -1,6 +1,27 @@
 module extralib::vector {
     use std::vector;
 
+    /// Get the last element of `v`.
+    public fun last<T>(v: &vector<T>): &T {
+        vector::borrow(v, vector::length(v) - 1)
+    }
+
+    spec last {
+        aborts_if len(v) == 0;
+        ensures result == v[len(v) - 1];
+    }
+
+    /// Get the last element of `v`.
+    public fun last_mut<T>(v: &mut vector<T>): &mut T {
+        let len = vector::length(v);
+        vector::borrow_mut(v, len - 1)
+    }
+
+    spec last_mut {
+        aborts_if len(v) == 0;
+        ensures result == v[len(v) - 1];
+    }
+
     /// Add the values in `v[start..endx]`.
     public fun sum64_in(v: &vector<u64>, start: u64, endx: u64): u128 {
         let s = 0;
@@ -528,6 +549,18 @@ module extralib::vector {
         aborts_if false;
         ensures result <= len(v);
         ensures result == 0 <==> !contains(v, x);
+    }
+
+    #[test]
+    fun test_last() {
+        assert!(last(&vector[1,2,3,4,5]) == &5, 0);
+    }
+
+    #[test]
+    fun test_last_mut() {
+        let v = vector[1,2,3,4,5];
+        *last_mut(&mut v) = 6;
+        assert!(v == vector[1,2,3,4,6], 0);
     }
 
     #[test]

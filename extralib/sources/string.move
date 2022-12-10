@@ -10,18 +10,17 @@ module extralib::string {
         c - ASCII_0
     }
 
-    /// Parse a `u64` from a string.
-    public fun parse_u64(s: &vector<u8>): u64 {
+    /// Parse a `u64` from a string within `[start, endx)`.
+    public fun parse_u64_in(s: &vector<u8>, start: u64, endx: u64): u64 {
         let x = 0;
-        let slen = vector::length(s);
-        assert!(slen > 0, EINVALID_UINT);
-        let i = 0;
+        assert!(endx > start, EINVALID_UINT);
+        let i = start;
         while ({
             spec {
-                invariant i <= slen;
-                invariant forall j in 0..i: in_range(ASCII_0..ASCII_0 + 10, s[j]);
+                invariant i <= endx;
+                invariant forall j in start..i: in_range(ASCII_0..ASCII_0 + 10, s[j]);
             };
-            i < slen
+            i < endx
         }) {
             let c = *vector::borrow(s, i);
             assert!(ASCII_0 <= c && c <= ASCII_0 + 9, EINVALID_UINT);
@@ -29,6 +28,17 @@ module extralib::string {
             i = i + 1;
         };
         x
+    }
+
+    spec parse_u64_in {
+        pragma aborts_if_is_partial;
+        aborts_if !(endx > start);
+        aborts_if exists c in s[start..endx]: !in_range(ASCII_0..ASCII_0 + 10, c);
+    }
+
+    /// Parse a `u64` from a string.
+    public fun parse_u64(s: &vector<u8>): u64 {
+        parse_u64_in(s, 0, vector::length(s))
     }
 
     spec parse_u64 {
@@ -49,6 +59,8 @@ module extralib::string {
 
     #[test]
     fun test_parse_u64() {
+        assert!(parse_u64_in(&b"a1b", 1, 2) == 1, 0);
+        assert!(parse_u64_in(&b"a12b", 1, 3) == 12, 0);
         assert!(parse_u64(&b"1") == 1, 0);
         assert!(parse_u64(&b"12") == 12, 0);
         assert!(parse_u64(&b"120") == 120, 0);
