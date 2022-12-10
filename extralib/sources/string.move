@@ -5,10 +5,12 @@ module extralib::string {
 
     const ASCII_0: u8 = 48;
 
+    /// Convert an ASCII character to a digit.
     public fun digit(c: u8): u8 {
         c - ASCII_0
     }
 
+    /// Parse a `u64` from a string.
     public fun parse_u64(s: &vector<u8>): u64 {
         let x = 0;
         let slen = vector::length(s);
