@@ -2,3 +2,4 @@ build/
 storage/
 __pycache__/
 *.bpl
+.lia.cache

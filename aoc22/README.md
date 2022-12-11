@@ -382,8 +382,8 @@ ignored, so `vector::split_at()` and `string::parse_u64()` are sufficient.
 
 Worry values get too big without dividing by 3, but, since we're ultimately only
 interested in whether they're divisible by certain values, we can use the fact
-that `(x mod (n * m)) mod n = x mod n` and take the worry mod the product of all
-the test divisors.
+that `(x mod (n * m)) mod n = x mod n` ([Coq proof](./proofs/mod-prod.v)) and
+take the worry mod the product of all the test divisors.
 Noticed the divisors are all prime, but unless I'm missing something, the
 property doesn't actually require that, so maybe it was just a hint to get you
 to think about them?
