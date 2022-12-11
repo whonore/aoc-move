@@ -368,3 +368,25 @@ Made it possible to reuse for `signed64::parse()`.
 A signed 64-bit integer implementation that wraps a `u64` with a flag for the sign.
 Everything is straightforward except a few functions have special cases for `0`
 to prevent `-0`, which is also enforced by a struct invariant.
+
+### Day 11
+
+#### Part 1
+
+Similar overall to yesterday: parse the instructions, run them some number of
+times, count the number of inspected items.
+Parsing is probably the trickiest part, but most of the text in each line can be
+ignored, so `vector::split_at()` and `string::parse_u64()` are sufficient.
+
+#### Part 2
+
+Worry values get too big without dividing by 3, but, since we're ultimately only
+interested in whether they're divisible by certain values, we can use the fact
+that `(x mod (n * m)) mod n = x mod n` and take the worry mod the product of all
+the test divisors.
+Noticed the divisors are all prime, but unless I'm missing something, the
+property doesn't actually require that, so maybe it was just a hint to get you
+to think about them?
+The test for Part 2 times out with the default gas limit (1000000), but raising
+it to 10000000 works.
+Doesn't seem like there's a way of configuring that globally from `Move.toml`.
