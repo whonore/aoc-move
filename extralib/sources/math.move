@@ -1,4 +1,16 @@
 module extralib::math {
+    const MAX_U64: u64 = 18446744073709551615;
+
+    /// Return the largest possible `u64`.
+    public fun max_u64(): u64 {
+        MAX_U64
+    }
+
+    spec max_u64 {
+        aborts_if false;
+        ensures result == (1 << 64) - 1;
+    }
+
     /// Return the larger of `x` and `y`.
     public fun max64(x: u64, y: u64): u64 {
         if (x > y) { x } else { y }

@@ -293,6 +293,7 @@ module extralib::vector {
     }
 
     spec repeat {
+        pragma opaque;
         aborts_if false;
         ensures len(result) == n;
         ensures forall x in result: x == default;

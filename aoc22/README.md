@@ -390,3 +390,48 @@ to think about them?
 The test for Part 2 times out with the default gas limit (1000000), but raising
 it to 10000000 works.
 Doesn't seem like there's a way of configuring that globally from `Move.toml`.
+
+### Day 12
+
+#### Part 1
+
+It's hash map day.
+Problem is to find the shortest distance, which means Djikstra's algorithm,
+which means keeping track of distances for coordinates, which means hash maps.
+Could've done something similar to Day 9's sparse array + converting coordinates
+to index approach, but that's already 90% of the way there, so why not just do
+the whole thing?
+Opted not to make a priority queue for the unvisited set, but, since the average
+number of edges is quite small (`<= 4` and often just 1 or 2), was able to keep
+the linear search time for the smallest distance manageable by only adding
+neighbors of visited nodes.
+
+#### Part 2
+
+Trivial extension of Part 1 to find the starting point with the shortest path.
+Part 1 already found the distance to the end from every point so just look for
+the minimum.
+
+#### ExtraLib
+
+##### `hashmap::new()`, `hashmap::get()`, `hashmap::has_key()`, `hashmap::set()`
+
+A generic hash map implemented by maintaining two sparse arrays for keys and values.
+The hash function combines `hash::sha3_256()` and `bcs::to_bytes()`.
+Collisions are handled by chaining, hence each sparse array stores a vector of
+either keys or values.
+Struct invariants ensure key and value arrays stay in sync.
+Lots of weird, seemingly unnecessary assumptions required for some of the parts
+that use mutable references.
+Might investigate more later to see if they can be removed.
+
+##### `sparse::get_mut()`
+
+Needed by `hashmap::set()` to add new keys and values.
+Also added spec functions for `sparse::get()` and `sparse::is_set()` so they can
+be used in `hashmap` specs.
+
+##### `math::max_u64()`
+
+Exposes `(2 << 64) - 1` as a constant.
+Will add other sizes as needed.

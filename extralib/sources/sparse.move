@@ -29,9 +29,12 @@ module extralib::sparse {
     }
 
     spec new {
+        pragma opaque;
+        let rem = if (size % BUCKET_SIZE != 0) { 1 } else { 0 };
         aborts_if false;
         ensures len(result.buckets) * BUCKET_SIZE >= size;
-        ensures forall v in result.buckets: len(v) == 0;
+        ensures len(result.buckets) == size / BUCKET_SIZE + rem;
+        ensures forall v in result.buckets: v == vec();
     }
 
     /// Get the element at position `i`.
@@ -42,13 +45,30 @@ module extralib::sparse {
         option::borrow(v)
     }
 
-    spec get {
+    spec fun spec_get<T>(a: SparseArray<T>, i: u64): T {
         let bidx = i / BUCKET_SIZE;
         let off = i % BUCKET_SIZE;
-        aborts_if !in_range(a.buckets, bidx);
-        aborts_if !in_range(a.buckets[bidx], off);
-        aborts_if option::is_none(a.buckets[bidx][off]);
-        ensures option::spec_contains(a.buckets[bidx][off], result);
+        option::borrow(a.buckets[bidx][off])
+    }
+
+    spec get {
+        pragma opaque;
+        aborts_if !spec_is_set(a, i);
+        ensures result == spec_get(a, i);
+    }
+
+    /// Get a mutable reference to the element at position `i`.
+    public fun get_mut<T>(a: &mut SparseArray<T>, i: u64): &mut T {
+        let (bidx, off) = idx_to_bucket(i);
+        let bucket = vector::borrow_mut(&mut a.buckets, bidx);
+        let v = vector::borrow_mut(bucket, off);
+        option::borrow_mut(v)
+    }
+
+    spec get_mut {
+        pragma opaque;
+        aborts_if !spec_is_set(a, i);
+        ensures result == spec_get(a, i);
     }
 
     /// Check if there is an element at position `i`.
@@ -63,11 +83,19 @@ module extralib::sparse {
         }
     }
 
-    spec is_set {
+    spec fun spec_is_set<T>(a: SparseArray<T>, i: u64): bool {
         let bidx = i / BUCKET_SIZE;
         let off = i % BUCKET_SIZE;
+        in_range(a.buckets, bidx)
+        && in_range(a.buckets[bidx], off)
+        && option::is_some(a.buckets[bidx][off])
+    }
+
+    spec is_set {
+        pragma opaque;
+        let bidx = i / BUCKET_SIZE;
         aborts_if !in_range(a.buckets, bidx);
-        ensures result <==> (in_range(a.buckets[bidx], off) && option::is_some(a.buckets[bidx][off]));
+        ensures result == spec_is_set(a, i);
     }
 
     /// Set the element at position `i`.
@@ -141,6 +169,16 @@ module extralib::sparse {
         set(&mut v, BUCKET_SIZE + 5, 3);
         assert!(is_set(&v, BUCKET_SIZE + 5), 0);
         assert!(get(&v, BUCKET_SIZE + 5) == &3, 0);
+    }
+
+    #[test]
+    fun test_get_mut() {
+        let v = new<u8>(2 * BUCKET_SIZE);
+        set(&mut v, 0, 1);
+        let x = get_mut(&mut v, 0);
+        assert!(*x == 1, 0);
+        *x = 2;
+        assert!(get(&v, 0) == &2, 0);
     }
 
     #[test]
