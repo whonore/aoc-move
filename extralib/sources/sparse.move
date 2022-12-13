@@ -123,7 +123,7 @@ module extralib::sparse {
         ensures option::spec_contains(a.buckets[bidx][off], v);
     }
 
-    // NOTE: this complains that the invariant from `std::option` that
+    // NOTE: This complains that the invariant from `std::option` that
     // `len(vec) <= 1` is broken, which doesn't make any sense since it's
     // impossible to build a malformed `Option` with the provided API.
     // /// Confirm `set()` preserves the global invariants.
