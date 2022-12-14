@@ -1,6 +1,7 @@
 module extralib::hashmap {
     use std::bcs;
     use std::hash;
+    use std::option::{Self, Option};
     use std::vector;
     use extralib::sparse::{Self, SparseArray};
 
@@ -59,6 +60,31 @@ module extralib::hashmap {
         aborts_if !contains(sparse::spec_get(m.keys, h), k);
         ensures exists i in range(sparse::spec_get(m.keys, h)):
             result == sparse::spec_get(m.vals, h)[i];
+    }
+
+    /// Get the value that `k` maps to or `option::none()` if `k` is unset.
+    public fun try_get<K: copy + drop, V: copy + drop>(m: &Map<K, V>, k: &K): Option<V> {
+        let h = hash(k);
+        let keys = sparse::try_get(&m.keys, h);
+        let vals = sparse::try_get(&m.vals, h);
+        if (option::is_some(&keys)) {
+            let (has, idx) = vector::index_of(option::borrow(&keys), k);
+            if (has) {
+                option::some(*vector::borrow(option::borrow(&vals), idx))
+            } else {
+                option::none()
+            }
+        } else {
+            option::none()
+        }
+    }
+
+    spec try_get {
+        let h = spec_hash(k);
+        aborts_if false;
+        ensures option::is_some(result) ==>
+            (exists i in range(sparse::spec_get(m.keys, h)):
+                option::spec_contains(result, sparse::spec_get(m.vals, h)[i]));
     }
 
     /// Check if there is a mapping for `k`.
@@ -177,22 +203,30 @@ module extralib::hashmap {
     fun test_set_get() {
         let m = new<u8, vector<u64>>();
         assert!(!has_key(&m, &0), 0);
+        assert!(try_get(&m, &0) == option::none(), 0);
         set(&mut m, &0, vector[1,2,3]);
         assert!(has_key(&m, &0), 0);
         assert!(get(&m, &0) == &vector[1,2,3], 0);
+        assert!(try_get(&m, &0) == option::some(vector[1,2,3]), 0);
         set(&mut m, &0, vector[4,5,6]);
         assert!(get(&m, &0) == &vector[4,5,6], 0);
+        assert!(try_get(&m, &0) == option::some(vector[4,5,6]), 0);
 
         assert!(!has_key(&m, &123), 0);
+        assert!(try_get(&m, &123) == option::none(), 0);
         set(&mut m, &123, vector[9]);
         assert!(get(&m, &123) == &vector[9], 0);
+        assert!(try_get(&m, &123) == option::some(vector[9]), 0);
         assert!(get(&m, &0) == &vector[4,5,6], 0);
+        assert!(try_get(&m, &0) == option::some(vector[4,5,6]), 0);
 
         let m = new<vector<u64>, bool>();
         assert!(!has_key(&m, &vector[1,2]), 0);
+        assert!(try_get(&m, &vector[1,2]) == option::none(), 0);
         set(&mut m, &vector[1,2], true);
         assert!(has_key(&m, &vector[1,2]), 0);
         assert!(get(&m, &vector[1,2]) == &true, 0);
+        assert!(try_get(&m, &vector[1,2]) == option::some(true), 0);
     }
 
     #[test]

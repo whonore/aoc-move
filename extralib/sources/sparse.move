@@ -57,6 +57,37 @@ module extralib::sparse {
         ensures result == spec_get(a, i);
     }
 
+    /// Get the element at position `i` or `option::none()`.
+    public fun try_get<T: copy>(a: &SparseArray<T>, i: u64): Option<T> {
+        let (bidx, off) = idx_to_bucket(i);
+        if (bidx < vector::length(&a.buckets)) {
+            let bucket = vector::borrow(&a.buckets, bidx);
+            if (off < vector::length(bucket)) {
+                *vector::borrow(bucket, off)
+            } else {
+                option::none()
+            }
+        } else {
+            option::none()
+        }
+    }
+
+    spec fun spec_try_get<T>(a: SparseArray<T>, i: u64): Option<T> {
+        let bidx = i / BUCKET_SIZE;
+        let off = i % BUCKET_SIZE;
+        if (bidx < len(a.buckets) && off < len(a.buckets[bidx])) {
+            a.buckets[bidx][off]
+        } else {
+            option::none()
+        }
+    }
+
+    spec try_get {
+        pragma opaque;
+        aborts_if false;
+        ensures result == spec_try_get(a, i);
+    }
+
     /// Get a mutable reference to the element at position `i`.
     public fun get_mut<T>(a: &mut SparseArray<T>, i: u64): &mut T {
         let (bidx, off) = idx_to_bucket(i);
@@ -160,15 +191,20 @@ module extralib::sparse {
     fun test_set_get() {
         let v = new<u8>(2 * BUCKET_SIZE);
         assert!(!is_set(&v, 0), 0);
+        assert!(try_get(&v, 0) == option::none(), 0);
         set(&mut v, 0, 1);
         assert!(is_set(&v, 0), 0);
         assert!(get(&v, 0) == &1, 0);
+        assert!(try_get(&v, 0) == option::some(1), 0);
         set(&mut v, 0, 2);
         assert!(get(&v, 0) == &2, 0);
+        assert!(try_get(&v, 0) == option::some(2), 0);
         assert!(!is_set(&v, BUCKET_SIZE + 5), 0);
+        assert!(try_get(&v, BUCKET_SIZE + 5) == option::none(), 0);
         set(&mut v, BUCKET_SIZE + 5, 3);
         assert!(is_set(&v, BUCKET_SIZE + 5), 0);
         assert!(get(&v, BUCKET_SIZE + 5) == &3, 0);
+        assert!(try_get(&v, BUCKET_SIZE + 5) == option::some(3), 0);
     }
 
     #[test]

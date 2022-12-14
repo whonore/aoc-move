@@ -457,3 +457,30 @@ since `ordered()` is destructive.
 Might investigate another time.
 Would be nice to put sorting in ExtraLib, but can't think of a clean way of
 supporting generic comparison functions.
+
+### Day 14
+
+#### Part 1
+
+Parse the input coordinates, interpolate, mark those points as rock in a hash
+map, simulate sand falling until it settles.
+Nothing too interesting.
+Solution is a bit slow (~4 seconds), could probably do better by tracking the
+lowest open positions in each column or something, but I'm fine with this.
+
+#### Part 2
+
+Small adjustment to allow the sand to pile up on the floor, but solution is very
+slow now (~2.5 minutes).
+Not sure if there's a clever optimization I'm not seeing, or if the hash map is
+just slow.
+Was wondering about triangle numbers because of the way the sand piles, but
+don't see an obvious way to figure out where the gaps in the middle would be
+without simulation.
+
+#### ExtraLib
+
+##### `sparse::try_get()`, `hashmap::try_get()`
+
+Variant getters that return an `option::Option` instead of aborting if unset.
+Ended up not actually using this time.
