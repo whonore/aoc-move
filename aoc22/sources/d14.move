@@ -92,8 +92,16 @@ module aoc22::d14 {
         (map, rmax + 1)
     }
 
-    fun simulate(map: &mut Map<vector<u64>, u8>, rvoid: u64): bool {
+    fun simulate(map: &mut Map<vector<u64>, u8>, last_path: &mut vector<vector<u64>>, rvoid: u64): bool {
         let (rsand, csand) = (0, SAND_C);
+        if (!vector::is_empty(last_path)) {
+            vector::pop_back(last_path); // Ignore resting positions
+            if (!vector::is_empty(last_path)) {
+                let last_coord = vector::pop_back(last_path);
+                rsand = *vector::borrow(&last_coord, 0);
+                csand = *vector::borrow(&last_coord, 1);
+            };
+        };
         while (rsand < rvoid) {
             if (!hashmap::has_key(map, &vector[rsand + 1, csand])) {
                 // Down
@@ -111,12 +119,21 @@ module aoc22::d14 {
                 hashmap::set(map, &vector[rsand, csand], SAND);
                 return true
             };
+            vector::push_back(last_path, vector[rsand, csand]);
         };
         false
     }
 
-    fun simulate_with_floor(map: &mut Map<vector<u64>, u8>, rfloor: u64): bool {
+    fun simulate_with_floor(map: &mut Map<vector<u64>, u8>, last_path: &mut vector<vector<u64>>, rfloor: u64): bool {
         let (rsand, csand) = (0, SAND_C);
+        if (!vector::is_empty(last_path)) {
+            vector::pop_back(last_path); // Ignore resting positions
+            if (!vector::is_empty(last_path)) {
+                let last_coord = vector::pop_back(last_path);
+                rsand = *vector::borrow(&last_coord, 0);
+                csand = *vector::borrow(&last_coord, 1);
+            };
+        };
         while (rsand < rfloor) {
             let at_floor = rsand + 1 == rfloor;
             if (!at_floor && !hashmap::has_key(map, &vector[rsand + 1, csand])) {
@@ -134,6 +151,7 @@ module aoc22::d14 {
                 hashmap::set(map, &vector[rsand, csand], SAND);
                 return !(rsand == 0 && csand == SAND_C)
             };
+            vector::push_back(last_path, vector[rsand, csand]);
         };
         abort EUNREACHABLE
     }
@@ -141,7 +159,8 @@ module aoc22::d14 {
     fun count_sand(paths: &vector<vector<u8>>): u64 {
         let nsand = 0;
         let (map, rvoid) = parse_map(paths);
-        while (simulate(&mut map, rvoid)) {
+        let last_path = vector[];
+        while (simulate(&mut map, &mut last_path, rvoid)) {
             nsand = nsand + 1;
         };
         nsand
@@ -150,7 +169,8 @@ module aoc22::d14 {
     fun count_sand_with_floor(paths: &vector<vector<u8>>): u64 {
         let nsand = 0;
         let (map, rvoid) = parse_map(paths);
-        while (simulate_with_floor(&mut map, rvoid + 1)) {
+        let last_path = vector[];
+        while (simulate_with_floor(&mut map, &mut last_path, rvoid + 1)) {
             nsand = nsand + 1;
         };
         nsand + 1

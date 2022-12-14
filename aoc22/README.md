@@ -478,6 +478,15 @@ Was wondering about triangle numbers because of the way the sand piles, but
 don't see an obvious way to figure out where the gaps in the middle would be
 without simulation.
 
+##### Update
+
+Found an optimization by realizing sand allows follows the same path except for
+the last decision.
+Added a vector to track the path of the last grain and start the new grain from
+the second-to-last position.
+Brought Part 1 down to under 1 second and Part 2 to ~7.5 seconds.
+Good enough for me.
+
 #### ExtraLib
 
 ##### `sparse::try_get()`, `hashmap::try_get()`
