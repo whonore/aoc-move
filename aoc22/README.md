@@ -435,3 +435,25 @@ be used in `hashmap` specs.
 
 Exposes `(2 << 64) - 1` as a constant.
 Will add other sizes as needed.
+
+### Day 13
+
+#### Part 1
+
+Challenging mostly because, without recursive types or ADTs, Move can't do
+arbitary-depth nested lists.
+Instead, had to encode as a 1-D vector using a special separator symbol and a length.
+Once parsing and getting the first element was working, comparing lists was pretty easy.
+Only issue was didn't notice at first that an in-order pair short-circuits the
+comparison (e.g., `[1, 10] < [2, 1]`).
+
+#### Part 2
+
+Now just have to sort the lists.
+Opted for insertion sort.
+Runs kind of slow (~9 seconds), but it's hard to say if it's the comparison
+function, or the fact that the lists have to be copied before being compared
+since `ordered()` is destructive.
+Might investigate another time.
+Would be nice to put sorting in ExtraLib, but can't think of a clean way of
+supporting generic comparison functions.
