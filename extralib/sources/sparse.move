@@ -157,6 +157,7 @@ module extralib::sparse {
     // NOTE: This complains that the invariant from `std::option` that
     // `len(vec) <= 1` is broken, which doesn't make any sense since it's
     // impossible to build a malformed `Option` with the provided API.
+    // See: https://github.com/move-language/move/issues/716.
     // /// Confirm `set()` preserves the global invariants.
     // fun spec_set_invariant<T: drop>(a: SparseArray<T>, i: u64, v: T) {
     //     set(&mut a, i, v);
