@@ -493,3 +493,47 @@ Good enough for me.
 
 Variant getters that return an `option::Option` instead of aborting if unset.
 Ended up not actually using this time.
+
+### Day 15
+
+#### Part 1
+
+Initial naive solution was to compute the full range covered by each sensor by
+drawing concentric diamonds around the starting point out to the distance
+between it and its beacon.
+Turns out to be much too slow for the full input, but since we only care about
+one line, it's enough to just compute the endpoints of the range along that line
+and keep track of the min and max x-coordinates across sensors.
+
+#### Part 2
+
+Initial solution looped through every point, calculated the range along the
+current line, jumped the x-coordinate to the rightmost endpoint and continued
+until a point that intersects no sensors is found.
+This worked, but was extremely slow (~80 minutes).
+Found some optimizations that brought it down to ~15 minutes.
+The main ones are to sort the sensors by x-coordinate (really would like a
+generic sort function), which means can skip rechecking the same sensors when x
+is increased, and to compute the endpoints for each segment once per
+y-coordinate since they don't depend on x.
+Not really a good way to benchmark, but this approach is probably doomed
+regardless since even just computing the ranges for each sensor on 4000000 lines
+takes ~1 hour.
+Probably have to do something clever with intersections of the diamonds around
+each sensor to do better.
+A problem for another time.
+
+#### ExtraLib
+
+##### `signed64::absdiff()`, `signed64::lt()`, `signed::le()`, `signed64::gt()`, `signed64::ge()`
+
+Compute the distance between two signed integers and compare them.
+
+##### `string::is_digit()`
+
+Check if a character is an ASCII digit.
+
+##### `pair::new()`, `pair::fst()`, `pair::fst_mut()`, `pair::snd()`, `pair::snd_mut()`
+
+A generic pair.
+Not strictly necessary, but got tired of using vectors.

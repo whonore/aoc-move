@@ -99,7 +99,59 @@ module extralib::signed64 {
     }
 
     spec sub {
-        aborts_if x.neg == !y.neg && x.val + y.val > MAX_U64;
+        aborts_if x.neg != y.neg && x.val + y.val > MAX_U64;
+    }
+
+    /// Compute `|x - y|`.
+    public fun absdiff(x: &Signed64, y: &Signed64): u64 {
+        abs(&if (lt(x, y)) { sub(y, x) } else { sub(x, y) })
+    }
+
+    spec absdiff {
+        aborts_if x.neg != y.neg && x.val + y.val > MAX_U64;
+    }
+
+    /// Check if `x` is less than `y`.
+    public fun lt(x: &Signed64, y: &Signed64): bool {
+        // (+, +)
+        if (!x.neg && !y.neg) { x.val < y.val }
+        // (+, -)
+        else if (!x.neg && y.neg) { false }
+        // (-, +)
+        else if (x.neg && !y.neg) { true }
+        // (-, -)
+        else { x.val > y.val }
+    }
+
+    spec lt {
+        aborts_if false;
+    }
+
+    /// Check if `x` is less than or equal to `y`.
+    public fun le(x: &Signed64, y: &Signed64): bool {
+        x == y || lt(x, y)
+    }
+
+    spec le {
+        aborts_if false;
+    }
+
+    /// Check if `x` is greater than `y`.
+    public fun gt(x: &Signed64, y: &Signed64): bool {
+        lt(y, x)
+    }
+
+    spec gt {
+        aborts_if false;
+    }
+
+    /// Check if `x` is greater than or equal to `y`.
+    public fun ge(x: &Signed64, y: &Signed64): bool {
+        x == y || gt(x, y)
+    }
+
+    spec ge {
+        aborts_if false;
     }
 
     /// Parse a `Signed64` from a string.
@@ -142,6 +194,70 @@ module extralib::signed64 {
         assert!(sub(&neg(3), &neg(1)) == neg(2), 0);
         assert!(sub(&pos(3), &neg(3)) == pos(6), 0);
         assert!(sub(&neg(3), &pos(3)) == neg(6), 0);
+    }
+
+    #[test]
+    fun test_absdiff() {
+        assert!(absdiff(&pos(1), &pos(2)) == 1, 0);
+        assert!(absdiff(&pos(3), &neg(1)) == 4, 0);
+        assert!(absdiff(&pos(3), &neg(5)) == 8, 0);
+        assert!(absdiff(&neg(3), &pos(8)) == 11, 0);
+        assert!(absdiff(&neg(3), &pos(2)) == 5, 0);
+        assert!(absdiff(&neg(3), &neg(1)) == 2, 0);
+        assert!(absdiff(&pos(3), &neg(3)) == 6, 0);
+        assert!(absdiff(&neg(3), &pos(3)) == 6, 0);
+    }
+
+    #[test]
+    fun test_lt() {
+        assert!(lt(&pos(1), &pos(2)), 0);
+        assert!(!lt(&pos(3), &neg(1)), 0);
+        assert!(!lt(&pos(3), &neg(5)), 0);
+        assert!(lt(&neg(3), &pos(8)), 0);
+        assert!(lt(&neg(3), &pos(2)), 0);
+        assert!(lt(&neg(3), &neg(1)), 0);
+        assert!(!lt(&pos(3), &neg(3)), 0);
+        assert!(lt(&neg(3), &pos(3)), 0);
+    }
+
+    #[test]
+    fun test_gt() {
+        assert!(!gt(&pos(1), &pos(2)), 0);
+        assert!(gt(&pos(3), &neg(1)), 0);
+        assert!(gt(&pos(3), &neg(5)), 0);
+        assert!(!gt(&neg(3), &pos(8)), 0);
+        assert!(!gt(&neg(3), &pos(2)), 0);
+        assert!(!gt(&neg(3), &neg(1)), 0);
+        assert!(gt(&pos(3), &neg(3)), 0);
+        assert!(!gt(&neg(3), &pos(3)), 0);
+    }
+
+    #[test]
+    fun test_le() {
+        assert!(le(&pos(1), &pos(2)), 0);
+        assert!(!le(&pos(3), &neg(1)), 0);
+        assert!(!le(&pos(3), &neg(5)), 0);
+        assert!(le(&neg(3), &pos(8)), 0);
+        assert!(le(&neg(3), &pos(2)), 0);
+        assert!(le(&neg(3), &neg(1)), 0);
+        assert!(!le(&pos(3), &neg(3)), 0);
+        assert!(le(&neg(3), &pos(3)), 0);
+        assert!(le(&neg(3), &neg(3)), 0);
+        assert!(le(&pos(3), &pos(3)), 0);
+    }
+
+    #[test]
+    fun test_ge() {
+        assert!(!ge(&pos(1), &pos(2)), 0);
+        assert!(ge(&pos(3), &neg(1)), 0);
+        assert!(ge(&pos(3), &neg(5)), 0);
+        assert!(!ge(&neg(3), &pos(8)), 0);
+        assert!(!ge(&neg(3), &pos(2)), 0);
+        assert!(!ge(&neg(3), &neg(1)), 0);
+        assert!(ge(&pos(3), &neg(3)), 0);
+        assert!(!ge(&neg(3), &pos(3)), 0);
+        assert!(ge(&neg(3), &neg(3)), 0);
+        assert!(ge(&pos(3), &pos(3)), 0);
     }
 
     #[test]
