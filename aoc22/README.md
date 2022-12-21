@@ -537,3 +537,38 @@ Check if a character is an ASCII digit.
 
 A generic pair.
 Not strictly necessary, but got tired of using vectors.
+
+### Day 16
+
+#### Part 1
+
+Compute the distance between every room with Floyd-Warshall, find every path
+achievable within the time limit, then find the one that maximizes the released
+pressure.
+Partially prune the search space by avoiding visiting the same room twice and
+ignoring rooms with 0 flow rates.
+Initially used hash maps for the rooms and the distances between them, but was
+pretty slow (~2 minutes).
+Switching to vectors brought it down to ~15 seconds.
+
+#### Part 2
+
+Compute the paths as before, find the max pressure released for every path
+permutation (treat `A -> B -> C` the same as `B -> C -> A`), then find the
+maximum sum of disjoint path pairs.
+Still pretty slow (~3 minutes), but may be hitting the limits of the Move VM
+since the identical solution in Python takes ~6 seconds.
+
+#### ExtraLib
+
+##### `evector::disjoint()`
+
+Check if two vectors have no overlapping elements.
+Similar to `evector::is_unique()`.
+
+##### `evector::sort64()`
+
+The same insertion sort used in Days 13 and 15, but specialized to `u64`.
+Surprisingly not too difficult to verify once the right loop invariants are found.
+Tricky part is during the inner loop the element at `j` might be out of order,
+but everything else up to `i` is sorted.

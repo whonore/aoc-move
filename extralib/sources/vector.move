@@ -476,6 +476,34 @@ module extralib::vector {
                  v[i] != v[j]);
     }
 
+    /// Check if `xs` and `ys` have no elements in common.
+    public fun disjoint<T>(xs: &vector<T>, ys: &vector<T>): bool {
+        let xlen = vector::length(xs);
+        let i = 0;
+        while ({
+            spec {
+                invariant i <= xlen;
+                invariant forall j in 0..i: !contains(ys, xs[j]);
+            };
+            i < xlen
+        }) {
+            let x = vector::borrow(xs, i);
+            if (vector::contains(ys, x)) {
+                return false
+            };
+            i = i + 1;
+        };
+        true
+    }
+
+    spec disjoint {
+        aborts_if false;
+        ensures
+            result
+            <==>
+            ((forall x in xs: !contains(ys, x)) && (forall y in ys: !contains(xs, y)));
+    }
+
     /// Swap a 2-D vector's rows with its columns.
     public fun transpose<T: copy>(v: &vector<vector<T>>): vector<vector<T>> {
         let vT = vector[];
@@ -550,6 +578,58 @@ module extralib::vector {
         aborts_if false;
         ensures result <= len(v);
         ensures result == 0 <==> !contains(v, x);
+    }
+
+    /// Sort a vector of `u64`s with insertion sort.
+    public fun sort64(v: &mut vector<u64>) {
+        let i = 1;
+        let vlen = vector::length(v);
+        if (vlen <= 1) return;
+
+        while ({
+            spec {
+                invariant vlen == len(v);
+                invariant i <= vlen;
+                // Everything up to `i` is sorted.
+                invariant forall k in 0..i - 1: v[k] <= v[k + 1];
+                // Sorting doesn't add or remove any new elements.
+                invariant forall x in old(v): contains(v, x);
+            };
+            i < vlen
+        }) {
+            let j = i;
+            while ({
+                spec {
+                    // NOTE: Repeated from the outer loop because Move doesn't
+                    // seem to be able to derive it.
+                    invariant vlen == len(v);
+                    invariant j <= i && i < vlen;
+                    // Everything before j is sorted.
+                    invariant 0 < j ==> (forall k in 0..j - 1: v[k] <= v[k + 1]);
+                    // Everything after j up to i is sorted.
+                    invariant forall k in j..i: v[k] <= v[k + 1];
+                    // The elements immediately surrounding j are sorted.
+                    invariant 0 < j && j < i ==> v[j - 1] <= v[j + 1];
+                    // Sorting doesn't add or remove any new elements.
+                    invariant forall x in old(v): contains(v, x);
+                };
+                j > 0 && *vector::borrow(v, j - 1) > *vector::borrow(v, j)
+            }) {
+                vector::swap(v, j - 1, j);
+                j = j - 1;
+            };
+            i = i + 1;
+        };
+    }
+
+    spec sort64 {
+        aborts_if false;
+        // `v` is sorted.
+        ensures forall i in 0..len(v) - 1: v[i] <= v[i + 1];
+        // The length is unchanged.
+        ensures len(v) == len(old(v));
+        // The elements are unchanged.
+        ensures forall x in old(v): contains(v, x);
     }
 
     #[test]
@@ -698,6 +778,18 @@ module extralib::vector {
     }
 
     #[test]
+    fun test_disjoint() {
+        assert!(disjoint<u64>(&vector[], &vector[]), 0);
+        assert!(disjoint(&vector[1], &vector[]), 0);
+        assert!(disjoint(&vector[], &vector[1]), 0);
+        assert!(disjoint(&vector[1], &vector[2]), 0);
+        assert!(disjoint(&vector[1,2], &vector[3,4,5]), 0);
+        assert!(!disjoint(&vector[1,2,3], &vector[3,4,5]), 0);
+        assert!(!disjoint(&vector[1,2], &vector[3,2,5]), 0);
+        assert!(!disjoint(&vector[1,2,4], &vector[3,4]), 0);
+    }
+
+    #[test]
     fun test_transpose() {
         assert!(
             transpose(&vector[vector[1,2,3],vector[4,5,6]])
@@ -718,5 +810,24 @@ module extralib::vector {
         assert!(count(&vector[true,false,false], &false) == 2, 0);
         assert!(count(&vector[1,2,3], &4) == 0, 0);
         assert!(count(&vector[], &1) == 0, 0);
+    }
+
+    #[test]
+    fun test_sort64() {
+        let v = vector[];
+        sort64(&mut v);
+        assert!(v == vector[], 0);
+        let v = vector[1];
+        sort64(&mut v);
+        assert!(v == vector[1], 0);
+        let v = vector[1,2,3];
+        sort64(&mut v);
+        assert!(v == vector[1,2,3], 0);
+        let v = vector[2,1,3];
+        sort64(&mut v);
+        assert!(v == vector[1,2,3], 0);
+        let v = vector[3,4,1,5,3];
+        sort64(&mut v);
+        assert!(v == vector[1,3,3,4,5], 0);
     }
 }
