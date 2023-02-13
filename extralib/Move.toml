@@ -7,5 +7,5 @@ std = "0x1"
 extralib = "0x72a"
 
 [dependencies]
-MoveStdlib = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib", rev = "6722242844d206d59f60c11cac13ead43a210ced" }
-MoveNursery = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib/nursery", rev = "6722242844d206d59f60c11cac13ead43a210ced" }
+MoveStdlib = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib", rev = "4901410d1f510601ca7fb982989e02c00756cac6" }
+MoveNursery = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib/nursery", rev = "4901410d1f510601ca7fb982989e02c00756cac6" }
