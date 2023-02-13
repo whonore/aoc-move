@@ -56,6 +56,10 @@ module extralib::math {
         ensures y <= x ==> result == x - y;
     }
 
+    spec fun spec_pow(n: num, p: num): num {
+        if (p == 0) { 1 } else { n * spec_pow(n, p - 1) }
+    }
+
     #[test]
     fun test_max64() {
         assert!(max64(1, 3) == 3, 0);
